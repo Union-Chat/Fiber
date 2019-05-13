@@ -14,7 +14,7 @@ defmodule Nerve.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      mod: {Nerve, []},
+      mod: {Nerve.Application, []},
       extra_applications: [:logger]
     ]
   end
@@ -22,7 +22,8 @@ defmodule Nerve.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:cowboy, github: "ninenines/cowboy", tag: "2.6.3"}
+      {:cowboy, github: "ninenines/cowboy", tag: "2.6.3"},
+      {:jason, "~> 1.1"}
     ]
   end
 end

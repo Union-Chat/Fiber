@@ -1,4 +1,4 @@
-defmodule Nerve do
+defmodule Nerve.Application do
   @moduledoc """
   Supervisor responsible of Nerve worker management
   """
@@ -8,7 +8,7 @@ defmodule Nerve do
 
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
-    Logger.info "Starting Nerve"
+    Logger.info "Starting Nerve version " <> Nerve.version()
 
     dispatch = :cowboy_router.compile([{:_, [{"/", Nerve.Websocket, []}]}])
 
