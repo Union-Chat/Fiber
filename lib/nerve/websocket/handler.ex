@@ -21,14 +21,8 @@ defmodule Nerve.Websocket.Handler do
   end
 
   def websocket_init(state) do
-    {
-      :reply,
-      {
-        :text,
-        Payload.encode_payload!(1, %{:heartbeat_interval => 600, :worker => "nerve-meme"})
-      },
-      state
-    }
+    {:ok, payload} = Payload.encode_payload(1, %{:heartbeat_interval => 600, :worker => "nerve-meme"})
+    {:reply, {:text, payload}, state}
   end
 
   def websocket_info(info, state) do

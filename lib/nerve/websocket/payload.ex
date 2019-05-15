@@ -43,24 +43,6 @@ defmodule Nerve.Websocket.Payload do
   end
 
   @doc """
-  Similar to encode_payload/2, except it will unwrap the error tuple and raise in case of errors
-  """
-  def encode_payload!(op, data) do
-    encode_payload!(op, data, nil)
-  end
-
-  @doc """
-  Similar to encode_payload/3, except it will unwrap the error tuple and raise in case of errors
-  """
-  def encode_payload!(op, data, event) do
-    case encode_payload(op, data, event) do
-      {:ok, result} -> result
-      {:error, error} -> raise error
-    end
-  end
-
-
-  @doc """
   Decodes a payload and validates if the payload is valid or not
 
   ## Examples
@@ -79,16 +61,6 @@ defmodule Nerve.Websocket.Payload do
       # todo: validate
       {:ok, json} -> {:ok, json}
       {:error, error} -> {:error, :invalid_syntax}
-    end
-  end
-
-  @doc """
-  Similar to decode_payload/1, except it will unwrap the error tuple and raise in case of errors
-  """
-  def decode_payload!(payload) do
-    case decode_payload(payload) do
-      {:ok, result} -> result
-      {:error, error} -> raise error
     end
   end
 end

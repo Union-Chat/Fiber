@@ -17,6 +17,6 @@ defmodule Nerve.Websocket do
 
   def handle_payload(data) do
     IO.inspect(data)
-    payload = Payload.decode_payload!(data)
+    {:ok, payload} = Payload.decode_payload(data)
   end
 end
