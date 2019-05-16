@@ -23,7 +23,8 @@ defmodule Nerve.MixProject do
   defp deps do
     [
       {:cowboy, github: "ninenines/cowboy", tag: "2.6.3"},
-      {:jason, "~> 1.1"}
+      {:jason, "~> 1.1"},
+      {:redix, ">= 0.0.0"}
     ]
   end
 end

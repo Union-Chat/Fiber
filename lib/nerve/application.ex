@@ -10,11 +10,10 @@ defmodule Nerve.Application do
     import Supervisor.Spec, warn: false
     Logger.info "Starting Nerve version " <> Nerve.version()
 
-    dispatch = :cowboy_router.compile([{:_, [{"/", Nerve.Websocket.Handler, []}]}])
-
+    dispatch = :cowboy_router.compile([_: [{"/", Nerve.Websocket.Handler, []}]])
     {:ok, _} = :cowboy.start_clear(
       :http,
-      [{:port, 8880}],
+      [port: Application.get_env(:nerve, :port)],
       %{
         :env => %{
           :dispatch => dispatch
@@ -25,7 +24,8 @@ defmodule Nerve.Application do
     children = [
       # Supervisor
       {Task.Supervisor, name: Nerve.TaskSupervisor},
-
+      # Redis
+      Nerve.Redis,
       # Cluster
       Nerve.Cluster
     ]
@@ -33,4 +33,3 @@ defmodule Nerve.Application do
     Supervisor.start_link(children, opts)
   end
 end
-

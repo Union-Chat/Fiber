@@ -1,10 +1,11 @@
 defmodule Nerve.Cluster do
 
   use GenServer
+  alias Nerve.Redis
   require Logger
 
-  @delay 100
-  @interval 2000
+  @delay 100      # Delay between actions
+  @interval 2000  # Delay between connection loop iterations
 
   def start_link(opts) do
     GenServer.start_link __MODULE__, opts
@@ -30,8 +31,7 @@ defmodule Nerve.Cluster do
       |> String.downcase
 
     state = %{
-      name: "Nerve_#{hostname}_#{Application.get_env(:nerve, :port)}",
-      group: "Nerve",
+      name: "#{hostname}_#{Application.get_env(:nerve, :port)}",
       cookie: Application.get_env(:nerve, :cookie),
       longname: nil,
       hostname: hostname,
@@ -44,6 +44,7 @@ defmodule Nerve.Cluster do
     {:ok, state}
   end
 
+
   ################
   # Handlers
   ################
@@ -53,23 +54,67 @@ defmodule Nerve.Cluster do
 
       Logger.info "[Cluster] Starting node #{node_name}"
       {:ok, _} = Node.start String.to_atom(node_name), :longnames
-      Node.set_cookie String.to_atom(state[:cookie])
+      Node.set_cookie String.to_atom state[:cookie]
 
       Logger.info "[Cluster] Initializing store"
       Nerve.Mnesia.initialize()
 
-      Logger.info "[Cluster] Node successfully fired up! Starting clustering"
-      Process.send_after self(), :cluster, @delay
+      Logger.info "[Cluster] Adding node to registry"
+      new_state = %{state | longname: node_name}
+      registry_write new_state
 
-      {:noreply, state}
+      Logger.info "[Cluster] Node successfully fired up!"
+      Process.send_after self(), :connect, @delay
+
+      {:noreply, new_state}
     else
-      Logger.warn "[Cluster] Tried to start an already alive node"
+      Logger.warn "[Cluster] Tried to start an already alive node! Ignoring event"
       {:noreply, state}
     end
   end
 
-  def handle_info(:cluster, state) do
-    IO.puts "memes tbh"
+  def handle_info(:connect, state) do
+    registry_write state
+    nodes = registry_read state
+
+    for {hash, longname} <- nodes do
+      unless hash == state[:hash] do
+        case Node.connect(String.to_atom longname) do
+          true ->
+            # All fine
+            nil
+          false ->
+            Logger.debug "[Cluster] Node #{longname} is no longer available, removing from store"
+            registry_delete hash
+          :ignored ->
+            Logger.debug "???"
+        end
+      end
+    end
+
+    # Queue next iteration
+    Process.send_after self(), :connect, @interval
     {:noreply, state}
+  end
+
+
+  ################
+  # Registry
+  ################
+  defp registry_read(state) do
+    {:ok, res} = Redis.query ["HGETALL", "nerve:Registry"]
+
+    res
+    |> Enum.chunk_every(2)
+    |> Enum.map(fn [a, b] -> {a, b} end)
+    |> Enum.to_list
+  end
+
+  defp registry_write(state) do
+    Redis.query ["HSET", "nerve:Registry", state[:hash], state[:longname]]
+  end
+
+  defp registry_delete(hash) do
+    Redis.query ["HDEL", "nerve:Registry", hash]
   end
 end
