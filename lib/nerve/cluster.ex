@@ -1,5 +1,4 @@
 defmodule Nerve.Cluster do
-
   use GenServer
   alias Nerve.Redis
   require Logger
@@ -11,24 +10,14 @@ defmodule Nerve.Cluster do
     GenServer.start_link __MODULE__, opts
   end
 
-  def init(_) do
+  def init(hash) do
     Logger.info "[Cluster] Initializing Nerve cluster"
     {:ok, hostname} = :inet.gethostname()
     {:ok, ip} = :inet.getaddr(hostname, :inet)
-
     hostname = to_string(hostname)
     ip = ip
          |> Tuple.to_list
          |> Enum.join(".")
-
-    hash =
-      :crypto.hash(
-        :sha,
-        :os.system_time(:millisecond)
-        |> Integer.to_string
-      )
-      |> Base.encode16
-      |> String.downcase
 
     state = %{
       name: "#{hostname}_#{Application.get_env(:nerve, :port)}",
@@ -68,14 +57,14 @@ defmodule Nerve.Cluster do
 
       {:noreply, new_state}
     else
-      Logger.warn "[Cluster] Tried to start an already alive node! Ignoring event"
+      Logger.warn "[Cluster] Tried to start an already alive node!"
       {:noreply, state}
     end
   end
 
   def handle_info(:connect, state) do
     registry_write state
-    nodes = registry_read state
+    nodes = registry_read
 
     for {hash, longname} <- nodes do
       unless hash == state[:hash] do
@@ -101,7 +90,7 @@ defmodule Nerve.Cluster do
   ################
   # Registry
   ################
-  defp registry_read(state) do
+  defp registry_read() do
     {:ok, res} = Redis.query ["HGETALL", "nerve:Registry"]
 
     res

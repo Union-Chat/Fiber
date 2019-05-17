@@ -14,16 +14,17 @@
 ### Summary
 This table lists all payloads send and received by Nerve. Each payload have more detailed information below.
 
-| Payload       | OP code | Action | Description                                     |
-|---------------|---------|--------|-------------------------------------------------|
-| HELLO         | 0       | recv   | Sent when you're connected                      |
-| IDENTIFY      | 1       | send   | Authenticates and identifies the current client |
-| WELCOME       | 2       | recv   | Sent when you're authenticated and identified   |
-| ABOUT_ME      | 3       | send   | Used to update metadata representing the client |
-| DISPATCH      | 4       | both   | Used to dispatch events                         |
-| HEARTBEAT     | 5       | recv   | heart...                                        |
-| HEARTBEAT_ACK | 6       | recv   | ...beat?                                        |
-| GO_AWAY       | 7       | recv   | go away. Clients should try reconnect           |
+| Payload       | OP code | Action | Description                                                           |
+|---------------|---------|--------|-----------------------------------------------------------------------|
+| HELLO         | 0       | recv   | Sent when you're connected                                            |
+| IDENTIFY      | 1       | send   | Authenticates and identifies the current client                       |
+| WELCOME       | 2       | recv   | Sent when you're authenticated and identified                         |
+| ABOUT_ME      | 3       | send   | Used to update metadata representing the client                       |
+| DISPATCH      | 4       | both   | Used to dispatch events                                               |
+| HEARTBEAT     | 5       | send   | heart...                                                              |
+| HEARTBEAT_ACK | 6       | recv   | ...beat?                                                              |
+| GO_AWAY       | 7       | recv   | go away. Clients should try reconnect                                 |
+| NO_U_TBH      | 8       | recv   | You did an oopsie that Nerve didn't liked. You got on their nerves... |
 
 ### Hello
 ```json

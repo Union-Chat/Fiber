@@ -8,9 +8,18 @@ defmodule Nerve.Application do
 
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
-    Logger.info "Starting Nerve version " <> Nerve.version()
+    Logger.info "Starting Nerve version #{Nerve.version}"
 
-    dispatch = :cowboy_router.compile([_: [{"/", Nerve.Websocket.Handler, []}]])
+    hash = :crypto.hash(
+             :sha,
+             :os.system_time(:millisecond)
+             |> Integer.to_string
+           )
+           |> Base.encode16
+           |> String.downcase
+           |> String.slice(0, 6)
+
+    dispatch = :cowboy_router.compile([_: [{"/", Nerve.Websocket.Handler, [hash: hash]}]])
     {:ok, _} = :cowboy.start_clear(
       :http,
       [port: Application.get_env(:nerve, :port)],
@@ -27,7 +36,7 @@ defmodule Nerve.Application do
       # Redis
       Nerve.Redis,
       # Cluster
-      Nerve.Cluster
+      worker(Nerve.Cluster, [hash])
     ]
     opts = [strategy: :one_for_one, name: Nerve.Supervisor]
     Supervisor.start_link(children, opts)

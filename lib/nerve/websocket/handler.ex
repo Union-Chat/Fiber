@@ -3,15 +3,14 @@ defmodule Nerve.Websocket.Handler do
   Websocket used to handle all incoming connections
   """
 
+  alias Nerve.Cluster
   alias Nerve.Websocket
   alias Nerve.Websocket.Payload
-
   require Logger
 
   @behaviour :cowboy_websocket
 
   def init(req, state) do
-    IO.inspect req
     {:cowboy_websocket, req, state}
   end
 
@@ -20,26 +19,18 @@ defmodule Nerve.Websocket.Handler do
     :ok
   end
 
-  def websocket_init(state) do
-    {:ok, payload} = Payload.encode_payload(1, %{:heartbeat_interval => 600, :worker => "nerve-meme"})
-    {:reply, {:text, payload}, state}
-  end
+  def websocket_init(state), do: Payload.hello(state)
 
-  def websocket_info(info, state) do
-    IO.inspect "info"
-    IO.inspect info
-    {:ok, state}
-  end
-
-  def websocket_handle({opcode, payload}, state) do
-    IO.inspect state
-    try do
-      case opcode do
-        :text -> Websocket.handle_payload(payload)
-      end
-      {:ok, state}
-    rescue
-      e -> {:stop, 4000}
+  def websocket_handle({:text, data}, state) do
+    {status, payload} = Jason.decode(data)
+    if status != :ok do
+      Payload.no_u_tbh("Invalid JSON", state)
+    else
+      Websocket.handle_payload(payload, state)
     end
   end
+
+  def websocket_handle(_, state), do: Payload.no_u_tbh("Invalid frame", state)
+
+  # def websocket_info(:evt, state), do: {:reply, {:text, "aaa"}, state}
 end

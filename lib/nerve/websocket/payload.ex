@@ -3,19 +3,50 @@ defmodule Nerve.Websocket.Payload do
   Payload handler for Nerve
   """
 
+  alias Nerve.Websocket
+  alias Nerve.Cluster
+
+  def hello(state) do
+    {:ok, payload} = encode_payload(
+      Websocket.opcodes_send[:hello],
+      %{
+        :heartbeat_interval => Websocket.heartbeat_interval,
+        :worker => "nerve-#{state[:hash]}"
+      }
+    )
+
+    {:reply, {:text, payload}, state}
+  end
+
+  def no_u_tbh(error, state) do
+    {:ok, payload} = encode_payload(
+      Websocket.opcodes_send[:no_u_tbh],
+      error
+    )
+
+    {
+      :reply,
+      [
+        {:text, payload},
+        {:close, 4400, error}
+      ],
+      state
+    }
+  end
+
   @doc """
   Creates a generic payload ready to be sent through the websocket
 
   ## Examples
 
-      iex> Nerve.Websocket.Payload.encode_payload(0, "meme")
-      ~S|{"d":"meme","op":0}|
+      iex> Nerve.Websocket.Payload.encode_payload(1, "meme")
+      ~S|{"d":"meme","op":1}|
 
       iex> Nerve.Websocket.Payload.encode_payload(0, %{:a => "b", :c => "d"})
       ~S|{"d":{"a":"b","c":"d"},"op":0}|
   """
   def encode_payload(op, data) do
-    encode_payload(0, data, nil)
+    encode_payload(op, data, nil)
   end
 
   @doc """
@@ -23,8 +54,8 @@ defmodule Nerve.Websocket.Payload do
 
   ## Examples
 
-      iex> Nerve.Websocket.Payload.encode_payload(0, "meme", nil)
-      ~S|{"d":"meme","op":0}|
+      iex> Nerve.Websocket.Payload.encode_payload(1, "meme", nil)
+      ~S|{"d":"meme","op":1}|
 
       iex> Nerve.Websocket.Payload.encode_payload(0, %{:a => "b", :c => "d"}, nil)
       ~S|{"d":{"a":"b","c":"d"},"op":0}|
@@ -40,27 +71,5 @@ defmodule Nerve.Websocket.Payload do
     end
 
     Jason.encode(json)
-  end
-
-  @doc """
-  Decodes a payload and validates if the payload is valid or not
-
-  ## Examples
-
-      iex> Nerve.Websocket.Payload.decode_payload("{\\"d\\":\\"meme\\",\\"e\\":\\"EVENT\\",\\"op\\":0}")
-      {:ok, %{"d" => "meme", "e" => "EVENT", "op" => 0}}
-
-      iex> Nerve.Websocket.Payload.decode_payload("{\\"d\\":\\"meme\\",\\"e\\":\\"EVENT\\",\\"op:0}")
-      {:error, :invalid_syntax}
-
-      # iex> Nerve.Websocket.Payload.decode_payload("{\\"d\\":\\"meme\\",\\"e\\":\\"EVENT\\"}")
-      # {:error, :invalid_struct}
-  """
-  def decode_payload(payload) do
-    case Jason.decode(payload) do
-      # todo: validate
-      {:ok, json} -> {:ok, json}
-      {:error, error} -> {:error, :invalid_syntax}
-    end
   end
 end

@@ -7,7 +7,8 @@ defmodule Nerve.MixProject do
       version: "0.0.1",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      dialyzer: [plt_add_apps: [:mnesia]]
     ]
   end
 
