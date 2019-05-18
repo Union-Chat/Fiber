@@ -28,7 +28,6 @@ defmodule Nerve.Mnesia do
   @doc """
   Initializen't the store
   """
-  @spec shutdown() :: :ok
   def shutdown do
     :mnesia.delete_table @identity
     :mnesia.delete_table @clients

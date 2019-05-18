@@ -7,7 +7,7 @@ defmodule Nerve.Application do
   require Logger
 
   def start(_type, _args) do
-    import Supervisor.Spec, warn: false
+    import Supervisor.Spec
     Logger.info "Starting Nerve version #{Nerve.version}"
 
     hash = :crypto.hash(
@@ -17,7 +17,6 @@ defmodule Nerve.Application do
            )
            |> Base.encode16
            |> String.downcase
-           |> String.slice(0, 6)
 
     dispatch = :cowboy_router.compile([_: [{"/", Nerve.Websocket.Handler, [hash: hash]}]])
     {:ok, _} = :cowboy.start_clear(

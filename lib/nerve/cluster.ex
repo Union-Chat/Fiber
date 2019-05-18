@@ -1,5 +1,6 @@
 defmodule Nerve.Cluster do
   use GenServer
+  alias Nerve.Mnesia
   alias Nerve.Redis
   require Logger
 
@@ -11,6 +12,8 @@ defmodule Nerve.Cluster do
   end
 
   def init(hash) do
+    Process.flag(:trap_exit, true)
+
     Logger.info "[Cluster] Initializing Nerve cluster"
     {:ok, hostname} = :inet.gethostname()
     {:ok, ip} = :inet.getaddr(hostname, :inet)
@@ -31,6 +34,12 @@ defmodule Nerve.Cluster do
     # Start clustering
     Process.send_after self(), :start, @delay
     {:ok, state}
+  end
+
+  def terminate(reason, state) do
+    registry_delete state[:hash]
+    Mnesia.shutdown()
+    :normal
   end
 
 

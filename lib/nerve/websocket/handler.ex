@@ -11,7 +11,14 @@ defmodule Nerve.Websocket.Handler do
   @behaviour :cowboy_websocket
 
   def init(req, state) do
-    {:cowboy_websocket, req, state}
+    {
+      :cowboy_websocket,
+      req,
+      state ++ [identified: false],
+      %{
+        idle_timeout: Websocket.heartbeat_interval + 10000
+      }
+    }
   end
 
   def terminate(_reason, _req, _state) do

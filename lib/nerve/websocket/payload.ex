@@ -4,14 +4,13 @@ defmodule Nerve.Websocket.Payload do
   """
 
   alias Nerve.Websocket
-  alias Nerve.Cluster
 
   def hello(state) do
     {:ok, payload} = encode_payload(
-      Websocket.opcodes_send[:hello],
+      Websocket.opcodes[:hello],
       %{
         :heartbeat_interval => Websocket.heartbeat_interval,
-        :worker => "nerve-#{state[:hash]}"
+        :worker => "nerve-#{String.slice(state[:hash], 0, 6)}"
       }
     )
 
@@ -20,7 +19,7 @@ defmodule Nerve.Websocket.Payload do
 
   def no_u_tbh(error, state) do
     {:ok, payload} = encode_payload(
-      Websocket.opcodes_send[:no_u_tbh],
+      Websocket.opcodes[:no_u_tbh],
       error
     )
 

@@ -37,6 +37,18 @@ This table lists all payloads send and received by Nerve. Each payload have more
 }
 ```
 
+### Identify
+```json
+{
+  "op": 1,
+  "d": {
+    "app_name": "Application name, used as main key for querying a client",
+    "client_id": "Unique ID used for a *single* connection, used to handle reconnecting",
+    "password": "Authentication token configured"
+  }
+}
+```
+
 ### Go away
 ```json
 {
