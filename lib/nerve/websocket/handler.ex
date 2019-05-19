@@ -3,6 +3,7 @@ defmodule Nerve.Websocket.Handler do
   Websocket used to handle all incoming connections
   """
 
+  alias Nerve.Mnesia
   alias Nerve.Cluster
   alias Nerve.Websocket
   alias Nerve.Websocket.Payload
@@ -16,13 +17,16 @@ defmodule Nerve.Websocket.Handler do
       req,
       state ++ [identified: false],
       %{
-        idle_timeout: Websocket.heartbeat_interval + 10000
+        idle_timeout: Websocket.heartbeat_interval * 2
       }
     }
   end
 
-  def terminate(_reason, _req, _state) do
-    IO.inspect "terminate"
+  def terminate(_reason, _req, state) do
+    if state[:app_name] do
+      Logger.info "[Socket] Client #{state[:app_name]}##{state[:client_id]} disconnected"
+      Mnesia.delete_client(state[:app_name], state[:client_id])
+    end
     :ok
   end
 

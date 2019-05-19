@@ -49,6 +49,14 @@ This table lists all payloads send and received by Nerve. Each payload have more
 }
 ```
 
+### Welcome
+```json
+{
+  "op": 1,
+  "d": "hi i'm dad"
+}
+```
+
 ### Go away
 ```json
 {

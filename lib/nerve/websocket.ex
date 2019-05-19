@@ -1,6 +1,6 @@
 defmodule Nerve.Websocket do
+  alias Nerve.Mnesia
   alias Nerve.Websocket.Payload
-
   require Logger
 
   def heartbeat_interval, do: 45000
@@ -53,11 +53,19 @@ defmodule Nerve.Websocket do
   ################
   # Handle payload
   ################
-  defp handle_identify(%{"d" => %{"app_name" => name, "client_id" => id, "password" => auth} = data}, state) do
-    IO.inspect name
-    IO.inspect id
-    IO.inspect auth
-    {:reply, {:text, "soon:tm:"}, state}
+  defp handle_identify(%{"d" => %{"app_name" => name, "client_id" => id, "password" => auth} = data}, state)
+       when is_binary(name) and is_binary(id) and is_binary(auth) do
+    if auth == Application.get_env(:nerve, :password) do
+      if !Mnesia.client_exists?(name, id) or data["reconnect"] do
+        Logger.info "[Socket] New client connected: #{name}##{id}"
+        Mnesia.insert_client(name, id)
+        Payload.welcome(state ++ [app_name: name, client_id: id])
+      else
+        Payload.no_u_tbh("This application with that client is already logged in!", state)
+      end
+    else
+      Payload.no_u_tbh("Invalid password", state)
+    end
   end
 
   defp handle_aboutme(%{"d" => data}, state) do
@@ -72,6 +80,7 @@ defmodule Nerve.Websocket do
     {:reply, {:text, "soon:tm:"}, state}
   end
 
+  # Bad payloads
   defp handle_identify(_, state),
        do: Payload.no_u_tbh("Invalid payload", state)
 
