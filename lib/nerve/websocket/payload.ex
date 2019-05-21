@@ -23,19 +23,8 @@ defmodule Nerve.Websocket.Payload do
   end
 
   def no_u_tbh(error, state) do
-    {:ok, payload} = encode_payload(
-      Websocket.opcodes[:no_u_tbh],
-      error
-    )
-
-    {
-      :reply,
-      [
-        {:text, payload},
-        {:close, 4400, error}
-      ],
-      state
-    }
+    {:ok, payload} = encode_payload(Websocket.opcodes[:no_u_tbh], error)
+    {:reply, [{:text, payload}, {:close, 4400, error}], state}
   end
 
   @doc """

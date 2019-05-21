@@ -79,23 +79,44 @@ defmodule Nerve.Mnesia do
   end
 
   def delete_client(app_name, client_id) do
-    :mnesia.transaction(fn ->
-      clients = :mnesia.wread {@clients, app_name}
-      case clients do
-        [data] ->
-          {@clients, ^app_name, clients} = data
-          :mnesia.write {@clients, app_name, MapSet.delete(clients, client_id)}
+    :mnesia.transaction(
+      fn ->
+        clients = :mnesia.wread {@clients, app_name}
+        case clients do
+          [data] ->
+            {@clients, ^app_name, clients} = data
+            :mnesia.write {@clients, app_name, MapSet.delete(clients, client_id)}
           # todo: delete their metadata too
+        end
       end
-    end)
+    )
     :ok
   end
 
   ################
   # Identity
   ################
+  def update_identity(app_name, client_id, metadata) do
+    if client_exists?(app_name, client_id) do
+      res = :mnesia.transaction(
+        fn ->
+          metadata
+          |> Map.keys
+          |> Enum.each(fn key -> :mnesia.write {@identity, {app_name, client_id, key}, metadata[key]} end)
+        end
+      )
+      case res do
+        {:atomic, _} ->
+          :ok
+        {:aborted, reason} -> # rip
+          {:error, {:mnesia_aborted, reason}}
+      else
+        {:error, {:invalid_pointer, reason}}
+      end
+    end
 
-  ################
-  # Analysis
-  ################
+    ################
+    # Analysis
+    ################
+  end
 end

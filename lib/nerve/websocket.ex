@@ -69,7 +69,9 @@ defmodule Nerve.Websocket do
   end
 
   defp handle_aboutme(%{"d" => data}, state) do
-    {:reply, {:text, "soon:tm:"}, state}
+    # data will be considered as the new metadata.
+    # since we passed the authentication process we can trust more the clients and do less checking /shrug
+    Mnesia.update_identity(state[:app_name], state[:client_id], data)
   end
 
   defp handle_heartbeat(_, state) do
