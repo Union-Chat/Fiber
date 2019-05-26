@@ -1,5 +1,5 @@
 defmodule Nerve.Websocket do
-  alias Nerve.Mnesia
+  alias Nerve.Storage
   alias Nerve.Websocket.Payload
   require Logger
 
@@ -56,9 +56,9 @@ defmodule Nerve.Websocket do
   defp handle_identify(%{"d" => %{"app_name" => name, "client_id" => id, "password" => auth} = data}, state)
        when is_binary(name) and is_binary(id) and is_binary(auth) do
     if auth == Application.get_env(:nerve, :password) do
-      if !Mnesia.client_exists?(name, id) or data["reconnect"] do
+      if !Storage.client_exists?(name, id) or data["reconnect"] do
         Logger.info "[Socket] New client connected: #{name}##{id}"
-        Mnesia.insert_client(name, id)
+        Storage.insert_client(name, id)
         Payload.welcome(state ++ [app_name: name, client_id: id])
       else
         Payload.no_u_tbh("This application with that client is already logged in!", state)
@@ -71,11 +71,21 @@ defmodule Nerve.Websocket do
   defp handle_aboutme(%{"d" => data}, state) do
     # data will be considered as the new metadata.
     # since we passed the authentication process we can trust more the clients and do less checking /shrug
-    Mnesia.update_identity(state[:app_name], state[:client_id], data)
+    Storage.update_identity(state[:app_name], state[:client_id], data)
   end
 
   defp handle_heartbeat(_, state) do
-    {:reply, {:text, "soon:tm:"}, state}
+    Process.cancel_timer(state[:timer])
+    new_state = Keyword.put(
+      state,
+      :timer,
+      Process.send_after(
+        self,
+        :zombie,
+        heartbeat_interval + 15000
+      )
+    )
+    Payload.heartbeat_ack(new_state)
   end
 
   defp handle_dispatch(%{"d" => data, "e" => event}, state) do

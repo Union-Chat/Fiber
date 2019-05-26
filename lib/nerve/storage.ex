@@ -1,4 +1,4 @@
-defmodule Nerve.Mnesia do
+defmodule Nerve.Storage do
   @moduledoc """
   Nerve's store Mnesia-baked. This is used to store all data used by the app
   """
@@ -7,8 +7,6 @@ defmodule Nerve.Mnesia do
   @identity :identity
   # Clients
   @clients :clients
-  # Sockets PIDs
-  @sockets :sockets
   # Voice analysis data
   @analysis :analysis
 
@@ -110,13 +108,13 @@ defmodule Nerve.Mnesia do
           :ok
         {:aborted, reason} -> # rip
           {:error, {:mnesia_aborted, reason}}
-      else
-        {:error, {:invalid_pointer, reason}}
       end
+    else
+      {:error, {:no_client}}
     end
-
-    ################
-    # Analysis
-    ################
   end
+
+  ################
+  # Analysis
+  ################
 end

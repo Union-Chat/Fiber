@@ -1,6 +1,6 @@
 defmodule Nerve.Cluster do
   use GenServer
-  alias Nerve.Mnesia
+  alias Nerve.Storage
   alias Nerve.Redis
   require Logger
 
@@ -38,7 +38,6 @@ defmodule Nerve.Cluster do
 
   def terminate(reason, state) do
     registry_delete state[:hash]
-    Mnesia.shutdown()
     :normal
   end
 
@@ -51,11 +50,16 @@ defmodule Nerve.Cluster do
       node_name = "#{state[:name]}@#{state[:ip]}"
 
       Logger.info "[Cluster] Starting node #{node_name}"
-      {:ok, _} = Node.start String.to_atom(node_name), :longnames
-      Node.set_cookie String.to_atom state[:cookie]
+      {:ok, _} = node_name
+                 |> String.to_atom
+                 |> Node.start(:longnames)
+
+      state[:cookie]
+      |> String.to_atom
+      |> Node.set_cookie
 
       Logger.info "[Cluster] Initializing store"
-      Nerve.Mnesia.initialize()
+      Nerve.Storage.initialize()
 
       Logger.info "[Cluster] Adding node to registry"
       new_state = %{state | longname: node_name}

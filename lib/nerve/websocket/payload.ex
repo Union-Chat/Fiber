@@ -22,6 +22,11 @@ defmodule Nerve.Websocket.Payload do
     {:reply, {:text, payload}, state}
   end
 
+  def heartbeat_ack(state) do
+    {:ok, payload} = encode_payload(Websocket.opcodes[:heartbeat_ack], "i heard u")
+    {:reply, {:text, payload}, state}
+  end
+
   def no_u_tbh(error, state) do
     {:ok, payload} = encode_payload(Websocket.opcodes[:no_u_tbh], error)
     {:reply, [{:text, payload}, {:close, 4400, error}], state}

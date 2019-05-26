@@ -3,7 +3,7 @@ defmodule Nerve.Websocket.Handler do
   Websocket used to handle all incoming connections
   """
 
-  alias Nerve.Mnesia
+  alias Nerve.Storage
   alias Nerve.Cluster
   alias Nerve.Websocket
   alias Nerve.Websocket.Payload
@@ -17,7 +17,7 @@ defmodule Nerve.Websocket.Handler do
       req,
       state ++ [identified: false],
       %{
-        idle_timeout: Websocket.heartbeat_interval * 2
+        idle_timeout: Websocket.heartbeat_interval + 25000
       }
     }
   end
@@ -25,12 +25,23 @@ defmodule Nerve.Websocket.Handler do
   def terminate(_reason, _req, state) do
     if state[:app_name] do
       Logger.info "[Socket] Client #{state[:app_name]}##{state[:client_id]} disconnected"
-      Mnesia.delete_client(state[:app_name], state[:client_id])
+      Storage.delete_client(state[:app_name], state[:client_id])
     end
     :ok
   end
 
-  def websocket_init(state), do: Payload.hello(state)
+  def websocket_init(state) do
+    new_state = Keyword.put(
+      state,
+      :timer,
+      Process.send_after(
+        self,
+        :zombie,
+        Websocket.heartbeat_interval + 15000
+      )
+    )
+    Payload.hello(new_state)
+  end
 
   def websocket_handle({:text, data}, state) do
     {status, payload} = Jason.decode(data)
@@ -41,7 +52,9 @@ defmodule Nerve.Websocket.Handler do
     end
   end
 
-  def websocket_handle(_, state), do: Payload.no_u_tbh("Invalid frame", state)
+  def websocket_handle(_, state), do:
+    Payload.no_u_tbh("Invalid frame", state)
 
-  # def websocket_info(:evt, state), do: {:reply, {:text, "aaa"}, state}
+  def websocket_info(:zombie, state), do:
+    Payload.no_u_tbh("Heartbeat timed out", state)
 end
