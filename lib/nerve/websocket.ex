@@ -13,11 +13,11 @@ defmodule Nerve.Websocket do
   }
 
   def init_connection(req, state) do
-    IO.inspect req
+    query = URI.decode_query req[:qs]
     {
       :cowboy_websocket,
       req,
-      state ++ [identified: false],
+      state ++ [identified: false, format: query["format"] || "json", compression: query["compression"] || "noop"],
       %{
         # In theory we'll never hit this. It's just in case the custom heartbeat logic fails
         # to ensure we don't get dead connections flooding PIDs

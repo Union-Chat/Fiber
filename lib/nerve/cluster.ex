@@ -23,7 +23,7 @@ defmodule Nerve.Cluster do
          |> Enum.join(".")
 
     state = %{
-      name: "#{hostname}_#{Application.get_env(:nerve, :port)}",
+      name: "#{hostname}_#{Application.get_env(:nerve, :int_port)}-#{Application.get_env(:nerve, :ext_port)}",
       cookie: Application.get_env(:nerve, :cookie),
       longname: nil,
       hostname: hostname,

@@ -25,7 +25,8 @@ defmodule Nerve.MixProject do
     [
       {:cowboy, github: "ninenines/cowboy", tag: "2.6.3"},
       {:jason, "~> 1.1"},
-      {:redix, ">= 0.0.0"}
+      {:redix, ">= 0.0.0"},
+      {:msgpax, "~> 2.2"}
     ]
   end
 end

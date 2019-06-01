@@ -2,6 +2,7 @@
   "cowboy": {:git, "https://github.com/ninenines/cowboy.git", "d846827b2a70317914621328bd617e4e5d4d13d8", [tag: "2.6.3"]},
   "cowlib": {:git, "https://github.com/ninenines/cowlib", "75aaeb8415033b07303febbfeba66d6d3413ad06", [ref: "2.7.3"]},
   "jason": {:hex, :jason, "1.1.2", "b03dedea67a99223a2eaf9f1264ce37154564de899fd3d8b9a21b1a6fd64afe7", [:mix], [{:decimal, "~> 1.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm"},
+  "msgpax": {:hex, :msgpax, "2.2.3", "02be0be1b440a12d7e6f6c45662463d53d01a30b5bd4ab806276453b455f820a", [:mix], [{:plug, "~> 1.0", [hex: :plug, repo: "hexpm", optional: true]}], "hexpm"},
   "ranch": {:git, "https://github.com/ninenines/ranch", "3190aef88aea04d6dce8545fe9b4574288903f44", [ref: "1.7.1"]},
   "redix": {:hex, :redix, "0.10.1", "b3e1b19f399cddce869fe0619d12bd435260f5f78046dc0d9138bc26cea11dfd", [:mix], [{:telemetry, "~> 0.4.0", [hex: :telemetry, repo: "hexpm", optional: false]}], "hexpm"},
   "telemetry": {:hex, :telemetry, "0.4.0", "8339bee3fa8b91cb84d14c2935f8ecf399ccd87301ad6da6b71c09553834b2ab", [:rebar3], [], "hexpm"},
