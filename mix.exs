@@ -8,7 +8,9 @@ defmodule Nerve.MixProject do
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      dialyzer: [plt_add_apps: [:mnesia]]
+      dialyzer: [
+        plt_add_apps: [:mnesia]
+      ]
     ]
   end
 
@@ -26,7 +28,9 @@ defmodule Nerve.MixProject do
       {:cowboy, github: "ninenines/cowboy", tag: "2.6.3"},
       {:jason, "~> 1.1"},
       {:redix, ">= 0.0.0"},
-      {:msgpax, "~> 2.2"}
+      {:msgpax, "~> 2.2"},
+
+      {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false}
     ]
   end
 end
