@@ -37,6 +37,6 @@ defmodule Nerve.Redis do
   defp random_index() do
     [:positive]
     |> System.unique_integer
-    |> rem @pool
+    |> rem(@pool)
   end
 end

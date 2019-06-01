@@ -1,7 +1,5 @@
 defmodule Nerve.Websocket do
-  alias Nerve.Storage
   alias Nerve.Websocket.Payload
-  require Logger
 
   def heartbeat_interval, do: 45000
 
@@ -9,73 +7,67 @@ defmodule Nerve.Websocket do
   def opcodes, do: %{
     :hello => 0,
     :welcome => 2,
-    :dispatch => 4,
-    :heartbeat_ack => 6,
     :goaway => 7,
     :no_u_tbh => 8,
-
-    1 => :identify,
-    3 => :aboutme,
-    4 => :dispatch,
     5 => :heartbeat
   }
 
-  ################
-  # Handle incoming payload
-  ################
-  def handle_payload(%{"op" => op, "d" => data} = payload, state) do
+  def init_connection(req, state) do
+    IO.inspect req
+    {
+      :cowboy_websocket,
+      req,
+      state ++ [identified: false],
+      %{
+        # In theory we'll never hit this. It's just in case the custom heartbeat logic fails
+        # to ensure we don't get dead connections flooding PIDs
+        idle_timeout: heartbeat_interval + 25000
+      }
+    }
+  end
+
+  def init_socket (state) do
+    new_state = heartbeat(state)
+    Payload.hello(new_state)
+  end
+
+  def handle_payload(%{"op" => op, "d" => _}, state) do
     opcode = opcodes[op]
     if opcode != :identify && !state[:identified] do
       Payload.no_u_tbh("You must identify first", state)
+      false
     else
       if opcode == :identify && state[:identified] do
         Payload.no_u_tbh("You're already authenticated", state)
+        false
       else
-        process_payload(payload, state)
+        process_payload(op, state)
       end
     end
   end
 
-  def handle_payload(_, state),
-      do: Payload.no_u_tbh("Invalid payload", state)
+  def handle_payload(_, state) do
+    Payload.no_u_tbh("Invalid payload (structure)", state)
+    false
+  end
 
-  defp process_payload(%{"op" => op, "d" => data} = payload, state) do
+  def process_payload(op, state) do
     case opcodes[op] do
-      :identify -> handle_identify payload, state
-      :aboutme -> handle_aboutme payload, state
-      :heartbeat -> handle_heartbeat payload, state
-      :dispatch -> handle_dispatch payload, state
-      _ -> Payload.no_u_tbh("Invalid OP code", state)
+      :heartbeat ->
+        handle_heartbeat state
+        false
+      _ ->
+        true
     end
   end
 
-
-  ################
-  # Handle payload
-  ################
-  defp handle_identify(%{"d" => %{"app_name" => name, "client_id" => id, "password" => auth} = data}, state)
-       when is_binary(name) and is_binary(id) and is_binary(auth) do
-    if auth == Application.get_env(:nerve, :password) do
-      if !Storage.client_exists?(name, id) or data["reconnect"] do
-        Logger.info "[Socket] New client connected: #{name}##{id}"
-        Storage.insert_client(name, id)
-        Payload.welcome(state ++ [app_name: name, client_id: id])
-      else
-        Payload.no_u_tbh("This application with that client is already logged in!", state)
-      end
-    else
-      Payload.no_u_tbh("Invalid password", state)
-    end
-  end
-
-  defp handle_aboutme(%{"d" => data}, state) do
-    # data will be considered as the new metadata.
-    # since we passed the authentication process we can trust more the clients and do less checking /shrug
-    Storage.update_identity(state[:app_name], state[:client_id], data)
-  end
-
-  defp handle_heartbeat(_, state) do
+  defp handle_heartbeat(state) do
     Process.cancel_timer(state[:timer])
+    new_state = heartbeat(state)
+    Payload.heartbeat_ack(new_state)
+  end
+
+  defp heartbeat (state) do
     new_state = Keyword.put(
       state,
       :timer,
@@ -85,17 +77,6 @@ defmodule Nerve.Websocket do
         heartbeat_interval + 15000
       )
     )
-    Payload.heartbeat_ack(new_state)
+    new_state
   end
-
-  defp handle_dispatch(%{"d" => data, "e" => event}, state) do
-    {:reply, {:text, "soon:tm:"}, state}
-  end
-
-  # Bad payloads
-  defp handle_identify(_, state),
-       do: Payload.no_u_tbh("Invalid payload", state)
-
-  defp handle_dispatch(_, state),
-       do: Payload.no_u_tbh("Invalid payload", state)
 end

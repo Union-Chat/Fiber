@@ -18,10 +18,10 @@ defmodule Nerve.Application do
            |> Base.encode16
            |> String.downcase
 
-    dispatch = :cowboy_router.compile([_: [{"/", Nerve.Websocket.Handler, [hash: hash]}]])
+    dispatch = :cowboy_router.compile([_: [{"/", Nerve.Websocket.Internal.Handler, [hash: hash]}]])
     {:ok, _} = :cowboy.start_clear(
       :http,
-      [port: Application.get_env(:nerve, :port)],
+      [port: Application.get_env(:nerve, :int_port)],
       %{
         :env => %{
           :dispatch => dispatch
