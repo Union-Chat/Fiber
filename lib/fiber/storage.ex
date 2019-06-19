@@ -1,6 +1,6 @@
-defmodule Nerve.Storage do
+defmodule Fiber.Storage do
   @moduledoc """
-  Nerve's store Mnesia-baked. This is used to store all data used by the app
+  Fiber's store Mnesia-baked. This is used to store all data used by the app
   """
 
   # Identify of clients

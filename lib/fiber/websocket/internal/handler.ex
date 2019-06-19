@@ -1,13 +1,13 @@
-defmodule Nerve.Websocket.Internal.Handler do
+defmodule Fiber.Websocket.Internal.Handler do
   @moduledoc """
   Websocket used to handle all incoming internal connections
   """
 
-  alias Nerve.Storage
-  alias Nerve.Websocket
-  alias Nerve.Websocket.Payload
-  alias Nerve.Websocket.Internal
-  alias Nerve.Websocket.Payload.Builder
+  alias Fiber.Storage
+  alias Fiber.Websocket
+  alias Fiber.Websocket.Payload
+  alias Fiber.Websocket.Internal
+  alias Fiber.Websocket.Payload.Builder
   require Logger
 
   @behaviour :cowboy_websocket

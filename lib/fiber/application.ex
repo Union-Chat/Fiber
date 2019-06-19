@@ -1,6 +1,6 @@
-defmodule Nerve.Application do
+defmodule Fiber.Application do
   @moduledoc """
-  Supervisor responsible of Nerve worker management
+  Supervisor responsible of Fiber worker management
   """
 
   use Application
@@ -8,7 +8,7 @@ defmodule Nerve.Application do
 
   def start(_type, _args) do
     import Supervisor.Spec
-    Logger.info "Starting Nerve version #{Nerve.version}"
+    Logger.info "Starting Fiber version #{Fiber.version}"
 
     hash = :crypto.hash(
              :sha,
@@ -18,10 +18,10 @@ defmodule Nerve.Application do
            |> Base.encode16
            |> String.downcase
 
-    dispatch = :cowboy_router.compile([_: [{"/", Nerve.Websocket.Internal.Handler, [hash: hash]}]])
+    dispatch = :cowboy_router.compile([_: [{"/", Fiber.Websocket.Internal.Handler, [hash: hash]}]])
     {:ok, _} = :cowboy.start_clear(
       :http,
-      [port: Application.get_env(:nerve, :int_port)],
+      [port: Application.get_env(:fiber, :int_port)],
       %{
         :env => %{
           :dispatch => dispatch
@@ -31,13 +31,13 @@ defmodule Nerve.Application do
 
     children = [
       # Supervisor
-      {Task.Supervisor, name: Nerve.TaskSupervisor},
+      {Task.Supervisor, name: Fiber.TaskSupervisor},
       # Redis
-      Nerve.Redis,
+      Fiber.Redis,
       # Cluster
-      worker(Nerve.Cluster, [hash])
+      worker(Fiber.Cluster, [hash])
     ]
-    opts = [strategy: :one_for_one, name: Nerve.Supervisor]
+    opts = [strategy: :one_for_one, name: Fiber.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

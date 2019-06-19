@@ -1,7 +1,7 @@
-defmodule Nerve.Cluster do
+defmodule Fiber.Cluster do
   use GenServer
-  alias Nerve.Storage
-  alias Nerve.Redis
+  alias Fiber.Storage
+  alias Fiber.Redis
   require Logger
 
   @delay 100      # Delay between actions
@@ -14,7 +14,7 @@ defmodule Nerve.Cluster do
   def init(hash) do
     Process.flag(:trap_exit, true)
 
-    Logger.info "[Cluster] Initializing Nerve cluster"
+    Logger.info "[Cluster] Initializing Fiber cluster"
     {:ok, hostname} = :inet.gethostname()
     {:ok, ip} = :inet.getaddr(hostname, :inet)
     hostname = to_string(hostname)
@@ -23,8 +23,8 @@ defmodule Nerve.Cluster do
          |> Enum.join(".")
 
     state = %{
-      name: "#{hostname}_#{Application.get_env(:nerve, :int_port)}-#{Application.get_env(:nerve, :ext_port)}",
-      cookie: Application.get_env(:nerve, :cookie),
+      name: "#{hostname}_#{Application.get_env(:fiber, :int_port)}-#{Application.get_env(:fiber, :ext_port)}",
+      cookie: Application.get_env(:fiber, :cookie),
       longname: nil,
       hostname: hostname,
       ip: ip,
@@ -59,7 +59,7 @@ defmodule Nerve.Cluster do
       |> Node.set_cookie
 
       Logger.info "[Cluster] Initializing store"
-      Nerve.Storage.initialize()
+      Fiber.Storage.initialize()
 
       Logger.info "[Cluster] Adding node to registry"
       new_state = %{state | longname: node_name}
@@ -104,7 +104,7 @@ defmodule Nerve.Cluster do
   # Registry
   ################
   defp registry_read() do
-    {:ok, res} = Redis.query ["HGETALL", "nerve:Registry"]
+    {:ok, res} = Redis.query ["HGETALL", "fiber:Registry"]
 
     res
     |> Enum.chunk_every(2)
@@ -113,10 +113,10 @@ defmodule Nerve.Cluster do
   end
 
   defp registry_write(state) do
-    Redis.query ["HSET", "nerve:Registry", state[:hash], state[:longname]]
+    Redis.query ["HSET", "fiber:Registry", state[:hash], state[:longname]]
   end
 
   defp registry_delete(hash) do
-    Redis.query ["HDEL", "nerve:Registry", hash]
+    Redis.query ["HDEL", "fiber:Registry", hash]
   end
 end

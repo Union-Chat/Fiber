@@ -1,17 +1,17 @@
-defmodule Nerve.Websocket.Payload do
+defmodule Fiber.Websocket.Payload do
   @moduledoc """
-  Payload handler for Nerve
+  Payload handler for Fiber
   """
 
-  alias Nerve.Websocket
-  alias Nerve.Websocket.Payload.Builder
+  alias Fiber.Websocket
+  alias Fiber.Websocket.Payload.Builder
 
   def hello(state) do
     payload = encode_payload(
       Websocket.opcodes[:hello],
       %{
         :heartbeat_interval => Websocket.heartbeat_interval,
-        :worker => "nerve-#{String.slice(state[:hash], 0, 6)}"
+        :worker => "fiber-#{String.slice(state[:hash], 0, 6)}"
       },
       state
     )

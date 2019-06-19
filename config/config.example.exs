@@ -5,8 +5,8 @@ config :logger,
        :console,
        format: "$time $metadata[$level] $message\n"
 
-# Nerve cfg
-config :nerve,
+# Fiber cfg
+config :fiber,
        int_port: 6669,
        ext_port: 8880,
        redis_dsn: "redis://:password@127.0.0.1:6379/0",

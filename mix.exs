@@ -1,9 +1,9 @@
-defmodule Nerve.MixProject do
+defmodule Fiber.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :nerve,
+      app: :fiber,
       version: "0.0.1",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,

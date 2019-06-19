@@ -1,9 +1,9 @@
-defmodule Nerve.Redis do
+defmodule Fiber.Redis do
   @pool 3
 
   # Child processes
   def child_spec(_opts) do
-    %URI{host: host, userinfo: userinfo} = Application.get_env(:nerve, :redis_dsn)
+    %URI{host: host, userinfo: userinfo} = Application.get_env(:fiber, :redis_dsn)
                                            |> URI.parse
 
     children =

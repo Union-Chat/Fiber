@@ -1,4 +1,4 @@
-defmodule Nerve.Websocket.Payload.Builder do
+defmodule Fiber.Websocket.Payload.Builder do
   def encode(payload, format, compression) do
     encoded = encode_paylaod(payload, format)
     compress_payload(encoded, compression)

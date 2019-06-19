@@ -1,7 +1,7 @@
-defmodule Nerve.Websocket.Internal do
-  alias Nerve.Storage
-  alias Nerve.Websocket
-  alias Nerve.Websocket.Payload
+defmodule Fiber.Websocket.Internal do
+  alias Fiber.Storage
+  alias Fiber.Websocket
+  alias Fiber.Websocket.Payload
   require Logger
 
   # We only need to access send opcodes by their name, and recv by their id
@@ -36,7 +36,7 @@ defmodule Nerve.Websocket.Internal do
   ################
   defp handle_identify(%{"app_name" => name, "client_id" => id, "password" => auth} = data, state)
        when is_binary(name) and is_binary(id) and is_binary(auth) do
-    if auth == Application.get_env(:nerve, :password) do
+    if auth == Application.get_env(:fiber, :password) do
       if !Storage.client_exists?(name, id) or data["reconnect"] do
         Logger.info "[Socket <int>] New client connected: #{name}##{id}"
         Storage.insert_client(name, id)

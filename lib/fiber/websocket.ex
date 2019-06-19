@@ -1,5 +1,5 @@
-defmodule Nerve.Websocket do
-  alias Nerve.Websocket.Payload
+defmodule Fiber.Websocket do
+  alias Fiber.Websocket.Payload
 
   def heartbeat_interval, do: 45000
 
